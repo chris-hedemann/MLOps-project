@@ -14,3 +14,11 @@ The project structure is as follows:
 - Monitor the API and the model using evidently, prometheus and grafana
 - Send data to the API and monitor the data with evidently
 - Use the Github Action to retrain the model with new data if you see data drift 
+
+```bash
+pyenv local 3.11.3
+python -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+``````
