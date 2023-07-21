@@ -60,10 +60,8 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
     ## Write metrics to file
     if cml_run:
         with open("metrics.txt", "w") as f:
-            f.write("–––––"*5)
-            f.write(f"Model: {model_name}, Version: {model_version}\n")
-            f.write(f"RMSE on the Train Set: {rmse_train}\n")
-            f.write(f"RMSE on the Test Set: {rmse_test}\n\n")
+            f.write(f"RMSE on the Train Set: {rmse_train}")
+            f.write(f"RMSE on the Test Set: {rmse_test}")
 
 def calculate_trip_duration_in_minutes(df: pd.DataFrame):
     features = ["PULocationID", 
