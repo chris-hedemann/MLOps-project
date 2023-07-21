@@ -10,6 +10,7 @@ from sklearn.metrics import mean_squared_error
 from typing import Optional
 
 def run(year, months, cml_run, local, model_name="mlops-project"):
+    ## Environmental variables
     if local:
         load_dotenv()
         MLFLOW_TRACKING_URI=os.getenv("MLFLOW_TRACKING_URI")
@@ -21,11 +22,14 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
         GOOGLE_APPLICATION_CREDENTIALS = "./credentials.json"
         os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
     
-    features = ["PULocationID", 
-                    "DOLocationID", 
-                    "trip_distance", 
-                    "fare_amount", 
-                    "total_amount"]
+    ## Set up meta information
+    features = [
+        "PULocationID", 
+        "DOLocationID", 
+        "trip_distance", 
+        "fare_amount", 
+        "total_amount"
+        ]
     target = "duration"
     tags = {
         "model": "linear regression",
@@ -37,6 +41,7 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
             "target": target
     }
 
+    ## Get data
     df = None
     for month in months:
         file_name = f"green_tripdata_{year}-{month:02d}.parquet"
@@ -44,10 +49,11 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
         extract_data(file_name)
         df = load_data(file_name, df2=df)
 
+    ## Prepare data
     df = calculate_trip_duration_in_minutes(df)
     X_train, X_test, y_train, y_test = split_data(df)
 
-
+    ## Train model
     rmse_train, rmse_test, model_version, model_name = \
     train_model(model_name,
             X_train,
@@ -57,11 +63,13 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
             tags,
             MLFLOW_TRACKING_URI)
     
+    ## Write metrics to file
     if cml_run:
         with open("metrics.txt", "w") as f:
-            f.write(f"Model: {model_name}, Version: {model_version}")
-            f.write(f"RMSE on the Train Set: {rmse_train}")
-            f.write(f"RMSE on the Test Set: {rmse_test}")
+            f.write("–––––"*5)
+            f.write(f"Model: {model_name}, Version: {model_version}\n")
+            f.write(f"RMSE on the Train Set: {rmse_train}\n")
+            f.write(f"RMSE on the Test Set: {rmse_test}\n\n")
 
 def extract_data(file_name: str): 
     if not os.path.exists(f"./data/{file_name}"):
