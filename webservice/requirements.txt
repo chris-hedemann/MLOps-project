@@ -1,0 +1,6 @@
+pydantic
+fastapi
+mlflow
+uvicorn
+google-cloud-storage
+prometheus-fastapi-instrumentator==5.7.1
