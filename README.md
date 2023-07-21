@@ -2,7 +2,7 @@
 
 ## Project Description
 
-In this project I will create a Github Action that trains a model, refactored from a pre-exisiting juypter notebook, and uses DVC for the versioning of the train data. This model will be used in an API and monitored with evidently, prometheus and grafana.
+In this project I will create a Github Action that trains a model, refactored from a pre-exisiting juypter notebook, and uses DVC for the versioning of the training data. This model will be used in an API and monitored with evidently, prometheus and grafana.
 
 ## Project Structure
 
