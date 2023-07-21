@@ -41,15 +41,9 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
             "target": target
     }
 
-    ## Get data
-    df = None
-    for month in months:
-        file_name = f"green_tripdata_{year}-{month:02d}.parquet"
-
-        extract_data(file_name)
-        df = load_data(file_name, df2=df)
 
     ## Prepare data
+    df = pd.read_parquet('./data/green_tripdata_training.parquet')
     df = calculate_trip_duration_in_minutes(df)
     X_train, X_test, y_train, y_test = split_data(df)
 
@@ -70,19 +64,6 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
             f.write(f"Model: {model_name}, Version: {model_version}\n")
             f.write(f"RMSE on the Train Set: {rmse_train}\n")
             f.write(f"RMSE on the Test Set: {rmse_test}\n\n")
-
-def extract_data(file_name: str): 
-    if not os.path.exists(f"./data/{file_name}"):
-        os.system(f"wget -P ./data https://d37ci6vzurychx.cloudfront.net/trip-data/{file_name}")
-
-def load_data(file_name: str,
-        df2: Optional[pd.DataFrame] = None,
-        ) -> pd.DataFrame:
-    
-    df = pd.read_parquet(f"./data/{file_name}")
-    if df2 is None:
-        df = pd.concat([df, df2], ignore_index=True)
-    return df
 
 def calculate_trip_duration_in_minutes(df: pd.DataFrame):
     features = ["PULocationID", 
