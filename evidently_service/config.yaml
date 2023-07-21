@@ -5,7 +5,6 @@ column_mapping:
   - DOLocationID
   numerical_features:
   - trip_distance
-  - passenger_count
   - fare_amount
   - total_amount
   prediction: prediction
