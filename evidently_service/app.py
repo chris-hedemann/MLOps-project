@@ -14,9 +14,7 @@ import datetime
 import hashlib
 
 import os
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Optional, List, Dict
 import logging
 import flask
 import pandas as pd

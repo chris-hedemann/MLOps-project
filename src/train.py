@@ -7,7 +7,6 @@ from mlflow.tracking.client import MlflowClient
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-from typing import Optional
 
 def run(year, months, cml_run, local, model_name="mlops-project"):
     ## Environmental variables
@@ -58,7 +57,10 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
             MLFLOW_TRACKING_URI)
     
     ## Write reference data to evidently
-    ref_data.to_csv("./evidently_service/green_taxi_data/reference.csv")
+    if local:
+        ref_data.to_csv("./evidently_service/green_taxi_data/reference.csv", index=False)
+    
+    df.to_csv("gs://training-data-mlops-project/reference.csv", index=False)
 
     
     ## Write metrics to file
