@@ -1,0 +1,26 @@
+
+column_mapping:
+  categorical_features:
+  - PULocationID
+  - DOLocationID
+  numerical_features:
+  - trip_distance
+  - fare_amount
+  - total_amount
+  prediction: prediction
+data_format:
+  header: true
+  separator: ','
+
+service:
+  calculation_period_sec: 10
+  min_reference_size: 20000
+  moving_reference: false
+  reference_path: gs://training-data-mlops-project/reference.csv
+  use_reference: true
+  window_size: 250
+  monitors:
+  - data_drift
+ 
+
+  

@@ -7,7 +7,6 @@ from mlflow.tracking.client import MlflowClient
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-from typing import Optional
 
 def run(year, months, cml_run, local, model_name="mlops-project"):
     ## Environmental variables
@@ -48,7 +47,7 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
     X_train, X_test, y_train, y_test = split_data(df)
 
     ## Train model
-    rmse_train, rmse_test, model_version, model_name = \
+    rmse_train, rmse_test, model_version, model_name, ref_data = \
     train_model(model_name,
             X_train,
             X_test, 
@@ -57,11 +56,18 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
             tags,
             MLFLOW_TRACKING_URI)
     
+    ## Write reference data to evidently
+    if local:
+        ref_data.to_csv("./evidently_service/green_taxi_data/reference.csv", index=False)
+    
+    df.to_csv("gs://training-data-mlops-project/reference.csv", index=False)
+
+    
     ## Write metrics to file
     if cml_run:
         with open("metrics.txt", "w") as f:
             f.write(f"Model: {model_name}, version {model_version}\n")
-            f.write(f"––––––"*4)
+            f.write(f"––––––"*4 + "\n")
             f.write(f"RMSE on the Train Set: {rmse_train}\n")
             f.write(f"RMSE on the Test Set: {rmse_test}\n")
 
@@ -109,10 +115,11 @@ def train_model(model_name: str,
         lr = LinearRegression()
         lr.fit(X_train, y_train)
         y_pred = lr.predict(X_test)
+        y_train_pred = lr.predict(X_train)
         rmse_test = mean_squared_error(y_test, y_pred, squared=False)
         rmse_train = mean_squared_error(
             y_train,
-            lr.predict(X_train),
+            y_train_pred,
             squared=False
             )
 
@@ -135,7 +142,11 @@ def train_model(model_name: str,
         archive_existing_versions=True
         )
 
-        return rmse_train, rmse_test, model_version, model_name
+        ref_data = X_train.copy()
+        ref_data['duration'] = y_train
+        ref_data['prediction'] = y_train_pred
+
+        return rmse_train, rmse_test, model_version, model_name, ref_data
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

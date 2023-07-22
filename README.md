@@ -21,4 +21,9 @@ python -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
-``````
+```
+
+I had to copy the .env to the VM in addition
+
+sudo docker run -d -p 8080:8080 --env-file=./.env --name=webservice europe-west3-docker.pkg.dev/ml-neuefische/docker-registry/ml-service
+b3bf50ce63b324d9ea125b930ab6ee2f4e1a15893753fec78c7f2b76a89e2fe6
