@@ -12,15 +12,11 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
     ## Environmental variables
     if local:
         load_dotenv()
-        MLFLOW_TRACKING_URI=os.getenv("MLFLOW_TRACKING_URI")
-        SA_KEY= os.getenv("SA_KEY")
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = SA_KEY
-        
     else:
-        MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
-        GOOGLE_APPLICATION_CREDENTIALS = "./credentials.json"
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./credentials.json"
     
+    MLFLOW_TRACKING_URI=os.getenv("MLFLOW_TRACKING_URI")
+
     ## Set up meta information
     features = [
         "PULocationID", 
@@ -57,12 +53,13 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
             MLFLOW_TRACKING_URI)
     
     ## Write reference data to evidently
-    if local:
-        ref_data.to_csv("./evidently_service/green_taxi_data/reference.csv", index=False)
-    
-    df.to_csv("gs://training-data-mlops-project/reference.csv", index=False)
+    df.to_csv("gs://training-data-mlops-project/reference.csv", 
+              index=False,
+              storage_options={
+                  'token': os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
+                  }
+                  )
 
-    
     ## Write metrics to file
     if cml_run:
         with open("metrics.txt", "w") as f:
