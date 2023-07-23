@@ -168,7 +168,7 @@ if __name__ == "__main__":
 
     cml_run = args.cml_run
     local = args.local
-    months = [1,]
-    year = 2021
+    months = [2,]
+    year = 2022
 
     run(year, months, cml_run, local)
