@@ -16,7 +16,8 @@ service:
   calculation_period_sec: 10
   min_reference_size: 20000
   moving_reference: false
-  reference_path: gs://training-data-mlops-project/reference.csv
+  reference_gcs: gs://training-data-mlops-project/reference.csv
+  reference_path: ./green_taxi_data/reference.csv
   use_reference: true
   window_size: 250
   monitors:

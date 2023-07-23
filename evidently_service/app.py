@@ -48,31 +48,42 @@ app.wsgi_app = DispatcherMiddleware(
     app.wsgi_app, {"/metrics": prometheus_client.make_wsgi_app()}
 )
 
-
-def getDriftMonitoringService(config):
+def getNewReference(options, data_options):
+    df_ref = pd.read_csv(options.reference_gcs, sep=",",)
+    # storage_options={
+    #                          "token": "./credentials.json"
+    #                      }
+    df_ref.to_csv(options.reference_path, index=False)
     loader = DataLoader()
-    logging.info(f"config: {config}")
-    options = MonitoringServiceOptions(**config["service"])
-
     reference_data = loader.load(
         options.reference_path,
-        DataOptions(
+        data_options)
+    logging.info(f"reference dataset loaded: {len(reference_data)} rows")
+    return reference_data
+
+def getDriftMonitoringService(config):
+    logging.info(f"config: {config}")
+    options = MonitoringServiceOptions(**config["service"])
+    data_options = DataOptions(
             date_column=config["data_format"].get("date_column", None),
             separator=config["data_format"]["separator"],
             header=config["data_format"]["header"],
-        ),
-    )
-    logging.info(f"reference dataset loaded: {len(reference_data)} rows")
+        )
+    reference_data = getNewReference(options, data_options)
+
     svc = MonitoringService(
         reference_data,
         options=options,
+        data_options=data_options,
         column_mapping=ColumnMapping(**config["column_mapping"]),
     )
+
     return svc
 
 
 @dataclasses.dataclass
 class MonitoringServiceOptions:
+    reference_gcs: str
     reference_path: str
     min_reference_size: int
     use_reference: bool
@@ -105,6 +116,7 @@ class MonitoringService:
         self,
         reference: pd.DataFrame,
         options: MonitoringServiceOptions,
+        data_options: DataOptions,
         column_mapping: ColumnMapping = None,
     ):
         self.monitoring = ModelMonitoring(
@@ -123,6 +135,21 @@ class MonitoringService:
         self.metrics = {}
         self.next_run_time = None
         self.new_rows = 0
+        self.hash = hashlib.sha256(
+            pd.util.hash_pandas_object(self.reference).values
+        ).hexdigest()
+        self.hash_metric = prometheus_client.Gauge(
+            "evidently:reference_dataset_hash", "", labelnames=["hash"]
+        )
+        self.data_options = data_options
+
+    def update_ref(self):
+        reference = getNewReference(self.options, self.data_options)
+        if self.options.use_reference:
+            self.reference = reference.iloc[: -self.options.window_size, :].copy()
+        else:
+            self.reference = reference.copy()
+
         self.hash = hashlib.sha256(
             pd.util.hash_pandas_object(self.reference).values
         ).hexdigest()
@@ -158,6 +185,8 @@ class MonitoringService:
         self.next_run_time = datetime.datetime.now() + datetime.timedelta(
             seconds=self.options.calculation_period_sec
         )
+
+        # self.update_ref()
         self.monitoring.execute(self.reference, self.current, self.column_mapping)
         self.hash_metric.labels(hash=self.hash).set(1)
         for metric, value, labels in self.monitoring.metrics():

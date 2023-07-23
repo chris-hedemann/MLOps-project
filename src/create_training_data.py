@@ -27,7 +27,7 @@ def create(months: list[int], year: int):
     df.to_parquet(f"{save_path}")
 
 if __name__ == "__main__":
-    months = [1,]
-    year = 2021
+    months = [2,]
+    year = 2022
     create(months, year)
 

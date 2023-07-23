@@ -161,3 +161,4 @@ cython_debug/
 
 #### Reference data
 ./evidently_service/green_taxi_data/reference.csv
+./evidently_service/credentials.json
