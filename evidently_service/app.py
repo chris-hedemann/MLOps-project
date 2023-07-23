@@ -153,9 +153,6 @@ class MonitoringService:
         self.hash = hashlib.sha256(
             pd.util.hash_pandas_object(self.reference).values
         ).hexdigest()
-        self.hash_metric = prometheus_client.Gauge(
-            "evidently:reference_dataset_hash", "", labelnames=["hash"]
-        )
 
     def iterate(self, new_rows: pd.DataFrame):
         rows_count = new_rows.shape[0]
@@ -186,7 +183,6 @@ class MonitoringService:
             seconds=self.options.calculation_period_sec
         )
 
-        # self.update_ref()
         self.monitoring.execute(self.reference, self.current, self.column_mapping)
         self.hash_metric.labels(hash=self.hash).set(1)
         for metric, value, labels in self.monitoring.metrics():
@@ -238,6 +234,14 @@ def iterate(dataset: str):
     SERVICE.iterate(new_rows=data)
     return "ok"
 
+@app.route("/reference/<dataset>", methods=["POST"])
+def reference(dataset: str):
+    global SERVICE
+    if SERVICE is None:
+        return "Internal Server Error: service not found", 500
+    logging.info(f"Updating reference...")
+    SERVICE.update_ref()
+    return "ok"
 
 if __name__ == "__main__":
     app.run(debug=True)

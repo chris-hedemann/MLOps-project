@@ -3,7 +3,7 @@ import requests
 import time
 
 
-df = pd.read_parquet("data/green_tripdata_2022-09.parquet")
+df = pd.read_parquet("data/green_tripdata_2022-02.parquet")
 
 features = [
     "PULocationID",

@@ -145,6 +145,17 @@ def train_model(model_name: str,
 
         return rmse_train, rmse_test, model_version, model_name, ref_data
     
+# def update_reference(data: TaxiRide):
+#     MONITORING_SERVICE_URI = os.getenv("MONITORING_SERVICE_URI")
+#     try:
+#         response = requests.post( 
+#             f"{MONITORING_SERVICE_URI}/iterate/green_taxi_data", 
+#             data=None,
+#             headers={"content-type": "application/json"},
+#         )
+#     except requests.exceptions.ConnectionError as error:
+#         print(f"Cannot reach a metrics application, error: {error}, data: {data}")
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -157,7 +168,7 @@ if __name__ == "__main__":
 
     cml_run = args.cml_run
     local = args.local
-    months = [2,]
-    year = 2022
+    months = [1,]
+    year = 2021
 
     run(year, months, cml_run, local)
