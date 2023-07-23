@@ -53,7 +53,8 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
             MLFLOW_TRACKING_URI)
     
     ## Write reference data to evidently
-    df.to_csv("gs://training-data-mlops-project/reference.csv", 
+    ref_data = ref_data[features]
+    ref_data.to_csv("gs://training-data-mlops-project/reference.csv", 
               index=False,
               storage_options={
                   'token': os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
