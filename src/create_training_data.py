@@ -22,6 +22,7 @@ def create(months: list[int], year: int):
         file_name = f"green_tripdata_{year}-{month:02d}.parquet"
         extract_data(file_name)
         df = load_data(file_name, df2=df)
+        print(f"With month {year}-{month} ")
     
     print(f"Writing to training {save_path}")
     df.to_parquet(f"{save_path}")
