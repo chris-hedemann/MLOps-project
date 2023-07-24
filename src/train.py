@@ -12,15 +12,11 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
     ## Environmental variables
     if local:
         load_dotenv()
-        MLFLOW_TRACKING_URI=os.getenv("MLFLOW_TRACKING_URI")
-        SA_KEY= os.getenv("SA_KEY")
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = SA_KEY
-        
     else:
-        MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
-        GOOGLE_APPLICATION_CREDENTIALS = "./credentials.json"
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "./credentials.json"
     
+    MLFLOW_TRACKING_URI=os.getenv("MLFLOW_TRACKING_URI")
+
     ## Set up meta information
     features = [
         "PULocationID", 
@@ -57,12 +53,14 @@ def run(year, months, cml_run, local, model_name="mlops-project"):
             MLFLOW_TRACKING_URI)
     
     ## Write reference data to evidently
-    if local:
-        ref_data.to_csv("./evidently_service/green_taxi_data/reference.csv", index=False)
-    
-    df.to_csv("gs://training-data-mlops-project/reference.csv", index=False)
+    ref_data = ref_data[features]
+    ref_data.to_csv("gs://training-data-mlops-project/reference.csv", 
+              index=False,
+              storage_options={
+                  'token': os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
+                  }
+                  )
 
-    
     ## Write metrics to file
     if cml_run:
         with open("metrics.txt", "w") as f:
@@ -148,6 +146,17 @@ def train_model(model_name: str,
 
         return rmse_train, rmse_test, model_version, model_name, ref_data
     
+# def update_reference(data: TaxiRide):
+#     MONITORING_SERVICE_URI = os.getenv("MONITORING_SERVICE_URI")
+#     try:
+#         response = requests.post( 
+#             f"{MONITORING_SERVICE_URI}/iterate/green_taxi_data", 
+#             data=None,
+#             headers={"content-type": "application/json"},
+#         )
+#     except requests.exceptions.ConnectionError as error:
+#         print(f"Cannot reach a metrics application, error: {error}, data: {data}")
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -160,7 +169,7 @@ if __name__ == "__main__":
 
     cml_run = args.cml_run
     local = args.local
-    months = [1,2]
-    year = 2021
+    months = [2,]
+    year = 2022
 
     run(year, months, cml_run, local)

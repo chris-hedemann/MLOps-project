@@ -3,7 +3,7 @@ import requests
 import time
 
 
-df = pd.read_parquet("data/green_tripdata_2022-09.parquet")
+df = pd.read_parquet("data/green_tripdata_2022-02.parquet")
 
 features = [
     "PULocationID",
@@ -30,7 +30,7 @@ df = df[29000:]
 
 for idx, row in df.sample(frac=1).iterrows():
     time.sleep(1)
-    url = "http://34.159.57.42:8080/predict"
+    url = "http://35.246.239.125:8080/predict"
     headers = {"accept": "application/json", "Content-Type": "application/json"}
     print(row.to_json())
     response = requests.post(url, headers=headers, data=row.to_json())

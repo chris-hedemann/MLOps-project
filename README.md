@@ -2,28 +2,37 @@
 
 ## Project Description
 
-In this project I will create a Github Action that trains a model, refactored from a pre-exisiting juypter notebook, and uses DVC for the versioning of the training data. This model will be used in an API and monitored with evidently, prometheus and grafana.
+In this MLOps project I created a CI/CD workflow with Github Actions and MLflow to train a model, which is deployed as an API and monitored in real time for data drift with evidently, prometheus and grafana. Data drift is reduced by retraining the model in the production environment, without interrupting the service.
 
 ## Project Structure
 
-The project structure is as follows:
+The steps I took to complete the project were:
 
-- Take the code from the training notebook and put it into a python file 
-- Create a Github Action that trains the model and tracks it with MLflow and uses DVC for the versioning of the train data
-- Update the API that uses this model and deploy the API
-- Monitor the API and the model using evidently, prometheus and grafana
-- Send data to the API and monitor the data with evidently
-- Use the Github Action to retrain the model with new data if you see data drift 
+- Take the model training code from the notebook and refactor it into a python file
+- Initialise DVC with a GCP Bucket to track the training data
+- Spin up an MLFlow server and update the training script to register the model in MLFlow and track model versions
+- Create a Github Action workflow that pulls the training data from DVC and traings the model
+- Create a webservice for the model with FastAPI and deploy to a GCP Virtual Machine (VM) 
+- Spin up a second VM for monitoring. Deploy evidently to track, prometheus to store and grafana to publish data drift monitoring statistics. Expose the webservice to the monitoring service.
+- Use the Github Action to retrain the model with new data when I see data drift 
 
-```bash
-pyenv local 3.11.3
-python -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-```
+## Difficulties and Challenges
 
-I had to copy the .env to the VM in addition
+When the model retrains with new training data, it was difficult to get  evidently to incorporate the new reference data into the live monitor. To get around this, I:
+- pushed the new reference data to GCP Cloud Storage, which evidently could access
+- built in a new endpoint, which when triggered, pulled the new reference data into the monitor
 
-sudo docker run -d -p 8080:8080 --env-file=./.env --name=webservice europe-west3-docker.pkg.dev/ml-neuefische/docker-registry/ml-service
-b3bf50ce63b324d9ea125b930ab6ee2f4e1a15893753fec78c7f2b76a89e2fe6
+This worked, but two variables remained "drifted" and I'm not sure why. Reference data and the data I sent to the model were from the same dataset, albeit different samples. Next time I would incorporate a larger training/reference data set or incorporate a more conservative drift test.
+
+## Results
+The send_data.py script sends data to the prediction endpoint every second:
+
+![](./images/send_data.gif)
+
+The green areas show where I updated to reference data to match the 
+
+![](./images/grafana_drift.gif)
+
+Here is a high-level diagramm to visualise the data flows:
+
+![](./images/data_flow.png)
