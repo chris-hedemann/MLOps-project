@@ -29,7 +29,7 @@ The send_data.py script sends data to the prediction endpoint every second:
 
 ![](./images/send_data.gif)
 
-The green areas show where I updated to reference data to match the 
+The green areas show where I updated to reference data to alleviate the data drift
 
 ![](./images/grafana_drift.gif)
 
